@@ -22,7 +22,9 @@ public protocol TimerProtocol {
 public extension TimerProtocol {
  @_disfavoredOverload
  @inlinable
- var isValid: Bool { self.fireDate == .distantFuture }
+ var isValid: Bool {
+  self.fireDate == .distantFuture || self.fireDate != .distantPast
+ }
  @_disfavoredOverload
  @inlinable
  mutating func fire() { self.fireDate = .now }

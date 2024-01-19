@@ -2,7 +2,7 @@ public final class StaticTimer: TimerProtocol {
  public init() {}
  public var fireDate: Tick = .distantFuture
  public func fire() { self.fireDate = .now }
- public func reset() { self.fireDate = .distantPast }
+ public func reset() { self.fireDate = .distantFuture }
 }
 
 public extension TimerProtocol where Self == StaticTimer {
