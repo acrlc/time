@@ -8,15 +8,11 @@ public protocol TimerProtocol {
  init()
 
  init(
-  repeats: Bool,
-  count: Int,
-  _ closure: @escaping (Self) throws -> Void
- ) throws
+  repeats: Bool, _ closure: @escaping (Self) throws -> Void
+ ) rethrows
  init(
-  repeats: Bool,
-  count: Int,
-  _ closure: @Sendable @escaping (Self) async throws -> Void
- ) async throws
+  repeats: Bool, _ closure: @Sendable @escaping (Self) async throws -> Void
+ ) async rethrows
 }
 
 public extension TimerProtocol {
@@ -25,6 +21,7 @@ public extension TimerProtocol {
  var isValid: Bool {
   self.fireDate == .distantFuture || self.fireDate != .distantPast
  }
+
  @_disfavoredOverload
  @inlinable
  mutating func fire() { self.fireDate = .now }
@@ -38,29 +35,24 @@ public extension TimerProtocol {
  @inlinable
  @discardableResult
  init(
-  repeats: Bool = false,
-  count: Int = 2,
-  _ closure: @escaping (Self) throws -> Void
- ) throws {
+  repeats: Bool, _ closure: @escaping (Self) throws -> Void
+ ) rethrows {
   self.init()
-  try self.time(repeats: repeats, count: count, closure)
+  try self.time(repeats: repeats, closure)
  }
 
  @inlinable
  @discardableResult
  init(
-  repeats: Bool,
-  count: Int,
-  _ closure: @escaping (Self) async throws -> Void
- ) async throws {
+  repeats: Bool, _ closure: @Sendable @escaping (Self) async throws -> Void
+ ) async rethrows {
   self.init()
-  try await self.time(repeats: repeats, count: count, closure)
+  try await self.time(repeats: repeats, closure)
  }
 
  @inlinable
  mutating func time(
   repeats: Bool = false,
-  count: Int = 2,
   _ closure: @escaping (Self) throws -> Void
  ) rethrows {
   func execute() throws {
@@ -70,16 +62,13 @@ public extension TimerProtocol {
   }
 
   if repeats {
-   let count = (0 ..< count)
-   guard !count.isEmpty else { return }
-   for _ in count { try execute() }
+   while true { try execute() }
   } else { try execute() }
  }
 
  @inlinable
  mutating func time(
   repeats: Bool = false,
-  count: Int = 2,
   _ closure: @escaping (Self) async throws -> Void
  ) async rethrows {
   func execute() async throws {
@@ -89,9 +78,7 @@ public extension TimerProtocol {
   }
 
   if repeats {
-   let count = (0 ..< count)
-   guard !count.isEmpty else { return }
-   for _ in count { try await execute() }
+   while true { try await execute() }
   } else { try await execute() }
  }
 
