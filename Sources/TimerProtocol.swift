@@ -19,18 +19,18 @@ public extension TimerProtocol {
  @_disfavoredOverload
  @inlinable
  var isValid: Bool {
-  self.fireDate == .distantFuture || self.fireDate != .distantPast
+  fireDate == .distantFuture || fireDate != .distantPast
  }
 
  @_disfavoredOverload
  @inlinable
- mutating func fire() { self.fireDate = .now }
+ mutating func fire() { fireDate = .now }
  @_disfavoredOverload
  @inlinable
- mutating func reset() { self.fireDate = .distantFuture }
+ mutating func reset() { fireDate = .distantFuture }
  @_disfavoredOverload
  @inlinable
- mutating func invalidate() { self.fireDate = .distantPast }
+ mutating func invalidate() { fireDate = .distantPast }
 
  @inlinable
  @discardableResult
@@ -38,7 +38,7 @@ public extension TimerProtocol {
   repeats: Bool, _ closure: @escaping (Self) throws -> Void
  ) rethrows {
   self.init()
-  try self.time(repeats: repeats, closure)
+  try time(repeats: repeats, closure)
  }
 
  @inlinable
@@ -47,7 +47,7 @@ public extension TimerProtocol {
   repeats: Bool, _ closure: @Sendable @escaping (Self) async throws -> Void
  ) async rethrows {
   self.init()
-  try await self.time(repeats: repeats, closure)
+  try await time(repeats: repeats, closure)
  }
 
  @inlinable
@@ -57,13 +57,17 @@ public extension TimerProtocol {
  ) rethrows {
   func execute() throws {
    defer { self.reset() }
-   self.fire()
+   fire()
    try closure(self)
   }
 
   if repeats {
-   while true { try execute() }
-  } else { try execute() }
+   while true {
+    try execute()
+   }
+  } else {
+   try execute()
+  }
  }
 
  @inlinable
@@ -73,13 +77,17 @@ public extension TimerProtocol {
  ) async rethrows {
   func execute() async throws {
    defer { self.reset() }
-   self.fire()
+   fire()
    try await closure(self)
   }
 
   if repeats {
-   while true { try await execute() }
-  } else { try await execute() }
+   while true {
+    try await execute()
+   }
+  } else {
+   try await execute()
+  }
  }
 
  @inlinable
@@ -87,7 +95,7 @@ public extension TimerProtocol {
   _ closure: @escaping (Self) throws -> A
  ) rethrows -> A {
   defer { self.reset() }
-  self.fire()
+  fire()
   return try closure(self)
  }
 
@@ -96,19 +104,19 @@ public extension TimerProtocol {
   _ closure: @escaping (Self) async throws -> A
  ) async rethrows -> A {
   defer { self.reset() }
-  self.fire()
+  fire()
   return try await closure(self)
  }
 
  @inlinable
- var elapsed: Time { Time.since(self.fireDate)._orIfZero(Tick.resolution) }
+ var elapsed: Time { Time.since(fireDate)._orIfZero(Tick.resolution) }
 
  @inlinable
  mutating func measure(
   _ work: () throws -> Void
  ) rethrows -> Time {
   defer { self.reset() }
-  self.fire()
+  fire()
   try work()
   return elapsed
  }
@@ -118,12 +126,13 @@ public extension TimerProtocol {
   _ work: () async throws -> Void
  ) async rethrows -> Time {
   defer { self.reset() }
-  self.fire()
+  fire()
   try await work()
   return elapsed
  }
 
- @inlinable var description: String { elapsed.description }
+ @inlinable
+ var description: String { elapsed.description }
 }
 
 @inlinable

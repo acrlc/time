@@ -4,23 +4,31 @@ public struct Size: RawRepresentable {
  public let rawValue: RawValue
 
  public init(_ value: RawValue) {
-  self.rawValue = value
+  rawValue = value
  }
 
  public init(rawValue value: RawValue) {
-  self.rawValue = value
+  rawValue = value
  }
+}
+
+public extension Size {
+ static let zero = Self(.zero)
 }
 
 extension Size: CustomStringConvertible {
  public var description: String {
   let v = Double(rawValue)
   return
-   rawValue >= 1 << 40 ? String(format: "%.3gT", v * 0x1p-40)
-   : rawValue >= 1 << 30 ? String(format: "%.3gG", v * 0x1p-30)
-   : rawValue >= 1 << 20 ? String(format: "%.3gM", v * 0x1p-20)
-   : rawValue >= 1024 ? String(format: "%.3gk", v * 0x1p-10)
-   : "\(rawValue)"
+   rawValue >= 1 << 40
+    ? String(format: "%.3gT", v * 0x1p-40)
+    : rawValue >= 1 << 30
+     ? String(format: "%.3gG", v * 0x1p-30)
+     : rawValue >= 1 << 20
+      ? String(format: "%.3gM", v * 0x1p-20)
+      : rawValue >= 1024
+       ? String(format: "%.3gk", v * 0x1p-10)
+       : "\(rawValue)"
  }
 }
 
@@ -42,7 +50,9 @@ extension Size: CodingKey {
  }
 
  public init?(stringValue: String) {
-  guard let size = Size(stringValue) else { return nil }
+  guard let size = Size(stringValue) else {
+   return nil
+  }
   self = size
  }
 
@@ -60,7 +70,7 @@ extension Size: Codable {
     debugDescription: "Not an integer: '\(string)'"
    )
   }
-  self.rawValue = value
+  rawValue = value
  }
 
  public func encode(to encoder: Encoder) throws {
@@ -83,16 +93,18 @@ public extension Size {
    }
   }
   let digits = string.prefix(upTo: position)
-  guard let value = RawValue(digits, radix: 10) else { return nil }
+  guard let value = RawValue(digits, radix: 10) else {
+   return nil
+  }
 
   // Parse optional suffix
   let suffix = string.suffix(from: position)
   switch suffix {
-  case "": self.rawValue = value
-  case "k", "K": self.rawValue = value << 10
-  case "m", "M": self.rawValue = value << 20
-  case "g", "G": self.rawValue = value << 30
-  case "t", "T": self.rawValue = value << 40
+  case "": rawValue = value
+  case "k", "K": rawValue = value << 10
+  case "m", "M": rawValue = value << 20
+  case "g", "G": rawValue = value << 30
+  case "t", "T": rawValue = value << 40
   default: return nil
   }
  }
@@ -108,7 +120,7 @@ extension Size: Comparable {
 
 extension FixedWidthInteger {
  var _minimumBitWidth: Int {
-  Self.bitWidth - self.leadingZeroBitCount
+  Self.bitWidth - leadingZeroBitCount
  }
 }
 
@@ -154,17 +166,18 @@ public extension Size {
 
 extension Size: Sequence {
  public func makeIterator() -> Iterator {
-  Iterator(limit: self.rawValue)
+  Iterator(limit: rawValue)
  }
- 
+
  public struct Iterator: IteratorProtocol {
   var current: RawValue = 0
   let limit: RawValue
   public mutating func next() -> RawValue? {
-   guard current < limit else { return nil }
+   guard current < limit else {
+    return nil
+   }
    current += 1
    return current
   }
  }
- 
 }

@@ -1,6 +1,5 @@
-import XCTest
 @testable import Time
-
+import XCTest
 
 final class TimeTests: XCTestCase {
  func testTimer() async throws {

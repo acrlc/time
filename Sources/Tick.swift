@@ -3,9 +3,9 @@
 import Foundation // For the side effect of reexporting Darwin/Glibc
 
 public struct Tick: Equatable {
- internal let _value: timespec
+ let _value: timespec
 
- internal init(_value: timespec) {
+ init(_value: timespec) {
   self._value = _value
  }
 
@@ -26,7 +26,9 @@ public struct Tick: Equatable {
   var res = timespec()
   let r = clock_getres(CLOCK_MONOTONIC_RAW, &res)
   precondition(r == 0, "clock_getres failure")
-  return Tick(_value: res).elapsedTime(since: Tick(_value: timespec(tv_sec: 0, tv_nsec: 0)))
+  return Tick(_value: res).elapsedTime(
+   since: Tick(_value: timespec(tv_sec: 0, tv_nsec: 0))
+  )
  }
 
  public func elapsedTime(since start: Tick) -> Time {
@@ -41,7 +43,7 @@ public struct Tick: Equatable {
   Tick(_value: timespec(tv_sec: .max, tv_nsec: .max))
  public static func == (lhs: Tick, rhs: Tick) -> Bool {
   lhs._value.tv_sec == rhs._value.tv_sec &&
-  lhs._value.tv_nsec == rhs._value.tv_nsec
+   lhs._value.tv_nsec == rhs._value.tv_nsec
  }
 }
 
@@ -50,9 +52,9 @@ public struct Tick: Equatable {
 import Foundation
 
 public struct Tick: Equatable {
- internal let _value: Date
+ let _value: Date
 
- internal init(_value: Date) {
+ init(_value: Date) {
   self._value = _value
  }
 
