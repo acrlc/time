@@ -18,7 +18,7 @@ public extension TimeClock where Instant == Date {}
 @available(macOS 13.0, *)
 public extension TimeClock where Instant == Date {
  @_disfavoredOverload
- var minimumResolution: TimeInterval { .zero.nextUp }
+ var minimumResolution: TimeInterval { 1e-9 }
  @_disfavoredOverload
  var now: Date { .distantFuture }
 }
@@ -72,7 +72,7 @@ public extension TimeClock
 @available(macOS 13.0, *)
 public struct SuspendingDateClock: TimeClock {
  public var now: Date { .now }
- public var minimumResolution: TimeInterval { .zero.nextUp }
+ public var minimumResolution: TimeInterval { 1e-9 }
  public var clock: SuspendingClock { .suspending }
 }
 
@@ -84,7 +84,7 @@ public extension Clock where Self == SuspendingDateClock {
 @available(macOS 13.0, *)
 public struct ContinuousDateClock: TimeClock {
  public var now: Date { .now }
- public var minimumResolution: TimeInterval { .zero.nextUp }
+ public var minimumResolution: TimeInterval { 1e-9 }
  public var clock: ContinuousClock { .continuous }
 }
 
