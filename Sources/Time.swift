@@ -2,7 +2,7 @@
 import Foundation
 
 /// A replacement for duration
-public struct Time {
+public struct Time: Sendable {
  public let seconds: TimeInterval
 
  public init(_ seconds: TimeInterval) {

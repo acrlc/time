@@ -2,7 +2,7 @@
 #if !USE_FOUNDATION_DATE && (os(macOS) || os(iOS) || os(watchOS) || os(tvOS))
 import Foundation // For the side effect of reexporting Darwin/Glibc
 
-public struct Tick: Equatable {
+public struct Tick: Equatable, DateProtocol {
  let _value: timespec
 
  init(_value: timespec) {
@@ -37,6 +37,8 @@ public struct Tick: Equatable {
   return Time(s + ns / 1e9)
  }
 
+ public var timeIntervalSinceNow: Time { elapsedTime(since: .now) }
+
  public static let distantPast =
   Tick(_value: timespec(tv_sec: -.max, tv_nsec: -.max))
  public static let distantFuture =
@@ -51,7 +53,7 @@ public struct Tick: Equatable {
 
 import Foundation
 
-public struct Tick: Equatable {
+public struct Tick: Equatable, DateProtocol {
  let _value: Date
 
  init(_value: Date) {
@@ -65,6 +67,8 @@ public struct Tick: Equatable {
  public func elapsedTime(since start: Tick) -> Time {
   Time(Double(_value.timeIntervalSince(start._value)))
  }
+ 
+ public var timeIntervalSinceNow: Time { elapsedTime(since: .now) }
 
  public static var resolution: Time {
   .nanosecond
