@@ -9,6 +9,10 @@ public struct DateClock: Clock {
  public var now: Date { .now }
  public var minimumResolution: Date.TimeInterval = 1e-9
  private let clock = ContinuousClock()
+ public init() {}
+ public init(minimumResolution: Date.TimeInterval) {
+  self.minimumResolution = minimumResolution
+ }
 }
 
 @available(macOS 13.0, *)
@@ -63,6 +67,10 @@ public struct TimeClock: Clock {
  public var now: Tick { .now }
  public var minimumResolution: Time = .nanosecond
  private let clock = ContinuousClock()
+ public init() {}
+ public init(minimumResolution: Time) {
+  self.minimumResolution = minimumResolution
+ }
 }
 
 @available(macOS 13.0, *)
