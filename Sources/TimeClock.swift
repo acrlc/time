@@ -2,36 +2,20 @@ import Foundation // For the side effect of reexporting Darwin/Glibc
 import struct Foundation.Date
 import struct Foundation.TimeInterval
 
-/// A clock for events that rely on date or duration relative to a point in time
 @available(macOS 13.0, *)
-public protocol TimeClock: Clock
- where Instant: DateProtocol, Duration == Instant.TimeInterval {
- associatedtype ClockType: Clock
- var clock: ClockType { get }
- func sleep(until deadline: Instant, tolerance: Duration?) async throws
+/// A clock for events that rely on date
+public struct DateClock: Clock {
+ @inline(__always)
+ public var now: Date { .now }
+ public var minimumResolution: Date.TimeInterval = 1e-9
+ private let clock = ContinuousClock()
 }
 
 @available(macOS 13.0, *)
-public extension TimeClock where Instant == Date {}
-
-// MARK: - Date Conformance
-@available(macOS 13.0, *)
-public extension TimeClock where Instant == Date {
- @_disfavoredOverload
- var minimumResolution: TimeInterval { 1e-9 }
- @_disfavoredOverload
- var now: Date { .distantFuture }
-}
-
-@available(macOS 13.0, *)
-public extension TimeClock
- where ClockType == SuspendingClock, Instant == Date {
+public extension DateClock {
  func sleep(until deadline: Date, tolerance: TimeInterval? = nil) async throws {
   let duration: Swift.Duration =
-   .seconds(
-    deadline
-     .timeIntervalSince(now == .distantFuture ? .now : now)
-   )
+   .seconds(deadline.timeIntervalSince(now))
   try await clock.sleep(
    until: .now.advanced(by: duration),
    tolerance: .seconds(tolerance ?? minimumResolution)
@@ -47,50 +31,8 @@ public extension TimeClock
 }
 
 @available(macOS 13.0, *)
-public extension TimeClock
- where ClockType == ContinuousClock, Instant == Date {
- func sleep(until deadline: Date, tolerance: TimeInterval? = nil) async throws {
-  let duration: Swift.Duration =
-   .seconds(
-    deadline
-     .timeIntervalSince(now == .distantFuture ? .now : now)
-   )
-  try await clock.sleep(
-   until: .now.advanced(by: duration),
-   tolerance: .seconds(tolerance ?? minimumResolution)
-  )
- }
-
- func sleep(tolerance: TimeInterval? = nil) async throws {
-  try await clock.sleep(
-   until: .now.advanced(by: Swift.Duration.seconds(now.timeIntervalSinceNow)),
-   tolerance: .seconds(tolerance ?? minimumResolution)
-  )
- }
-}
-
-@available(macOS 13.0, *)
-public struct SuspendingDateClock: TimeClock {
- public var now: Date { .now }
- public var minimumResolution: TimeInterval { 1e-9 }
- public var clock: SuspendingClock { .suspending }
-}
-
-@available(macOS 13.0, *)
-public extension Clock where Self == SuspendingDateClock {
- static var suspendingDate: Self { Self() }
-}
-
-@available(macOS 13.0, *)
-public struct ContinuousDateClock: TimeClock {
- public var now: Date { .now }
- public var minimumResolution: TimeInterval { 1e-9 }
- public var clock: ContinuousClock { .continuous }
-}
-
-@available(macOS 13.0, *)
-public extension Clock where Self == ContinuousDateClock {
- static var continuousDate: Self { Self() }
+public extension Clock where Self == DateClock {
+ static var date: Self { Self() }
 }
 
 @available(macOS 13.0, *)
@@ -113,22 +55,20 @@ extension Date: InstantProtocol {
  }
 }
 
-// MARK: - Tick Conformance
+// MARK: - Tick Implementation
 @available(macOS 13.0, *)
-public extension TimeClock where Instant.TimeInterval == Time {
- @_disfavoredOverload
- var minimumResolution: Time { .nanosecond }
- @_disfavoredOverload
- var now: Date { .distantFuture }
+/// A clock for events that rely on relative time
+public struct TimeClock: Clock {
+ @inline(__always)
+ public var now: Tick { .now }
+ public var minimumResolution: Time = .nanosecond
+ private let clock = ContinuousClock()
 }
 
 @available(macOS 13.0, *)
-public extension TimeClock
- where ClockType == SuspendingClock, Instant == Tick {
+public extension TimeClock {
  func sleep(until deadline: Tick, tolerance: Time? = nil) async throws {
-  let duration: Swift.Duration =
-   deadline
-    .elapsedTime(since: now == .distantFuture ? .now : now).duration
+  let duration: Swift.Duration = deadline.elapsedTime(since: now).duration
   try await clock.sleep(
    until: .now.advanced(by: duration),
    tolerance: .seconds((tolerance ?? minimumResolution).rawValue)
@@ -137,55 +77,17 @@ public extension TimeClock
 
  func sleep(tolerance: Time? = nil) async throws {
   try await clock.sleep(
-   until: .now.advanced(by: Swift.Duration.seconds(now.timeIntervalSinceNow)),
+   until: .now.advanced(
+    by: Swift.Duration.seconds(now.timeIntervalSinceNow.rawValue)
+   ),
    tolerance: .seconds((tolerance ?? minimumResolution).rawValue)
   )
  }
 }
 
 @available(macOS 13.0, *)
-public extension TimeClock
- where ClockType == ContinuousClock, Instant == Tick {
- func sleep(until deadline: Tick, tolerance: Time? = nil) async throws {
-  let duration: Swift.Duration =
-   deadline
-    .elapsedTime(since: now == .distantFuture ? .now : now).duration
-  try await clock.sleep(
-   until: .now.advanced(by: duration),
-   tolerance: .seconds((tolerance ?? minimumResolution).rawValue)
-  )
- }
-
- func sleep(tolerance: Time? = nil) async throws {
-  try await clock.sleep(
-   until: .now.advanced(by: Swift.Duration.seconds(now.timeIntervalSinceNow)),
-   tolerance: .seconds((tolerance ?? minimumResolution).rawValue)
-  )
- }
-}
-
-@available(macOS 13.0, *)
-public struct SuspendingTickClock: TimeClock {
- public var now: Tick { .now }
- public var minimumResolution: Time { .nanosecond }
- public var clock: SuspendingClock { .suspending }
-}
-
-@available(macOS 13.0, *)
-public extension Clock where Self == SuspendingDateClock {
- static var suspendingTick: Self { Self() }
-}
-
-@available(macOS 13.0, *)
-public struct ContinuousTickClock: TimeClock {
- public var now: Tick { .now }
- public var minimumResolution: Time { .nanosecond }
- public var clock: ContinuousClock { .continuous }
-}
-
-@available(macOS 13.0, *)
-public extension Clock where Self == ContinuousDateClock {
- static var continuousTick: Self { Self() }
+public extension Clock where Self == TimeClock {
+ static var time: Self { Self() }
 }
 
 @available(macOS 13.0, *)
