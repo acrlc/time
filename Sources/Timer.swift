@@ -1,4 +1,4 @@
-public final class StaticTimer: TimerProtocol {
+public final class StaticTimer: TimerProtocol, @unchecked Sendable {
  public init() {}
  public var fireDate: Tick = .distantFuture
  public func fire() { fireDate = .now }

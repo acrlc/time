@@ -1,4 +1,5 @@
-public protocol TimerProtocol {
+/// An object used to measure time.
+public protocol TimerProtocol: Sendable {
  /// Time the object first first fired
  var fireDate: Tick { get set }
  /// Sets the start time
