@@ -1,46 +1,32 @@
-public struct Size: RawRepresentable {
- public typealias RawValue = Int
+public struct Size {
+ let _value: UInt
 
- public let rawValue: RawValue
-
- public init(_ value: RawValue) {
-  rawValue = value
- }
-
- public init(rawValue value: RawValue) {
-  rawValue = value
+ public init(_ value: UInt) {
+  _value = value
  }
 }
 
-public extension Size {
- static let zero = Self(.zero)
+extension Size: RawRepresentable {
+ public var rawValue: UInt { _value }
+
+ public init(rawValue: UInt) {
+  self.init(rawValue)
+ }
 }
 
 extension Size: CustomStringConvertible {
  public var description: String {
-  let v = Double(rawValue)
+  let v = Double(_value)
   return
-   rawValue >= 1 << 40
+   _value >= 1 << 40
     ? String(format: "%.3gT", v * 0x1p-40)
-    : rawValue >= 1 << 30
+    : _value >= 1 << 30
      ? String(format: "%.3gG", v * 0x1p-30)
-     : rawValue >= 1 << 20
+     : _value >= 1 << 20
       ? String(format: "%.3gM", v * 0x1p-20)
-      : rawValue >= 1024
+      : _value >= 1024
        ? String(format: "%.3gk", v * 0x1p-10)
-       : "\(rawValue)"
- }
-}
-
-extension Size: ExpressibleByIntegerLiteral {
- public init(integerLiteral value: RawValue) {
-  self.init(value)
- }
-}
-
-extension Size: ExpressibleByFloatLiteral {
- public init(floatLiteral value: Double) {
-  self.init(Int(value))
+       : "\(_value)"
  }
 }
 
@@ -56,26 +42,19 @@ extension Size: CodingKey {
   self = size
  }
 
- public var intValue: Int? { rawValue }
- public var stringValue: String { "\(rawValue)" }
+ public var intValue: Int? { Int(_value) }
+ public var stringValue: String { "\(_value)" }
 }
 
 extension Size: Codable {
  public init(from decoder: Decoder) throws {
   let container = try decoder.singleValueContainer()
-  let string = try container.decode(String.self)
-  guard let value = Int(string, radix: 10) else {
-   throw DecodingError.dataCorruptedError(
-    in: container,
-    debugDescription: "Not an integer: '\(string)'"
-   )
-  }
-  rawValue = value
+  _value = try container.decode(UInt.self)
  }
 
  public func encode(to encoder: Encoder) throws {
   var container = encoder.singleValueContainer()
-  try container.encode("\(rawValue)")
+  try container.encode(_value)
  }
 }
 
@@ -93,29 +72,179 @@ public extension Size {
    }
   }
   let digits = string.prefix(upTo: position)
-  guard let value = RawValue(digits, radix: 10) else {
+  guard let value = UInt(digits, radix: 10) else {
    return nil
   }
 
   // Parse optional suffix
   let suffix = string.suffix(from: position)
   switch suffix {
-  case "": rawValue = value
-  case "k", "K": rawValue = value << 10
-  case "m", "M": rawValue = value << 20
-  case "g", "G": rawValue = value << 30
-  case "t", "T": rawValue = value << 40
+  case "": _value = value
+  case "k", "K": _value = value << 10
+  case "m", "M": _value = value << 20
+  case "g", "G": _value = value << 30
+  case "t", "T": _value = value << 40
   default: return nil
   }
  }
 }
 
-extension Size: Equatable {}
-extension Size: Hashable {}
-extension Size: Comparable {
- public static func < (left: Self, right: Self) -> Bool {
-  left.rawValue < right.rawValue
+extension Size: UnsignedInteger, Comparable {
+ public init?(exactly source: some BinaryFloatingPoint) {
+  guard let value = UInt(exactly: source) else { return nil }
+  self.init(value)
  }
+
+ public init(_ source: some BinaryFloatingPoint) {
+  self.init(UInt(source))
+ }
+
+ public init(_ source: some BinaryInteger) {
+  self.init(UInt(source))
+ }
+
+ public init?(exactly source: some BinaryInteger) {
+  guard let value = UInt(exactly: source) else { return nil }
+  self.init(value)
+ }
+
+ public init(truncatingIfNeeded source: some BinaryInteger) {
+  self.init(UInt(truncatingIfNeeded: source))
+ }
+
+ public init(clamping source: some BinaryInteger) {
+  self.init(UInt(clamping: source))
+ }
+
+ public init(integerLiteral value: UInt) {
+  self.init(value)
+ }
+
+ public static var zero: Size {
+  Size(0)
+ }
+
+ public static var max: Size {
+  Size(UInt.max)
+ }
+
+ public static var min: Size {
+  Size(UInt.min)
+ }
+
+ public static var isSigned: Bool {
+  false
+ }
+
+ public static func < (lhs: Size, rhs: Size) -> Bool {
+  lhs._value < rhs._value
+ }
+
+ public static func + (lhs: Size, rhs: Size) -> Size {
+  Size(lhs._value + rhs._value)
+ }
+
+ public static func - (lhs: Size, rhs: Size) -> Size {
+  Size(lhs._value - rhs._value)
+ }
+
+ public static func / (lhs: Size, rhs: Size) -> Size {
+  Size(lhs._value / rhs._value)
+ }
+
+ public static func % (lhs: Size, rhs: Size) -> Size {
+  Size(lhs._value % rhs._value)
+ }
+
+ public static func %= (lhs: inout Size, rhs: Size) {
+  var value = lhs._value
+  value %= rhs._value
+  lhs = Size(value)
+ }
+
+ public static func * (lhs: Size, rhs: Size) -> Size {
+  Size(lhs._value * rhs._value)
+ }
+
+ public static func &= (lhs: inout Size, rhs: Size) {
+  var value = lhs._value
+  value &= rhs._value
+  lhs = Size(value)
+ }
+
+ public static func |= (lhs: inout Size, rhs: Size) {
+  var value = lhs._value
+  value |= rhs._value
+  lhs = Size(value)
+ }
+
+ public static func ^= (lhs: inout Size, rhs: Size) {
+  var value = lhs._value
+  value ^= rhs._value
+  lhs = Size(value)
+ }
+
+ public static func /= (lhs: inout Size, rhs: Size) {
+  var value = lhs._value
+  value /= rhs._value
+  lhs = Size(value)
+ }
+
+ public static func *= (lhs: inout Size, rhs: Size) {
+  var value = lhs._value
+  value *= rhs._value
+  lhs = Size(value)
+ }
+
+ public static func ~= (lhs: Size, rhs: Size) -> Bool {
+  lhs._value ~= rhs._value
+ }
+
+ public static func == (lhs: Size, rhs: Size) -> Bool {
+  lhs._value == rhs._value
+ }
+
+ public static prefix func ~ (x: Size) -> Size {
+  Size(~x._value)
+ }
+
+ public static func >>= (lhs: inout Size, rhs: some BinaryInteger) {
+  var value = lhs._value
+  value >>= rhs
+  lhs = Size(value)
+ }
+
+ public static func <<= (lhs: inout Size, rhs: some BinaryInteger) {
+  var value = lhs._value
+  value <<= rhs
+  lhs = Size(value)
+ }
+
+ public var bitWidth: Int {
+  _value.bitWidth
+ }
+
+ public var words: UInt.Words {
+  _value.words
+ }
+
+ public var trailingZeroBitCount: Int {
+  _value.trailingZeroBitCount
+ }
+
+ public var nonzeroBitCount: Int {
+  _value.nonzeroBitCount
+ }
+
+ public var leadingZeroBitCount: Int {
+  _value.leadingZeroBitCount
+ }
+
+ public var byteSwapped: Size {
+  Size(_value.byteSwapped)
+ }
+
+ public var magnitude: Size { self }
 }
 
 extension FixedWidthInteger {
@@ -126,24 +255,24 @@ extension FixedWidthInteger {
 
 public extension Size {
  private static func _checkSignificantDigits(_ digits: Int) {
-  precondition(digits >= 1 && digits <= RawValue.bitWidth)
+  precondition(digits >= 1 && digits <= UInt.bitWidth)
  }
 
  func roundedDown(significantDigits digits: Int) -> Size {
   Self._checkSignificantDigits(digits)
-  let mask: RawValue = (0 &- 1) << (rawValue._minimumBitWidth - digits)
-  return Size(rawValue & mask)
+  let mask: UInt = (0 &- 1) << (_value._minimumBitWidth - digits)
+  return Size(_value & mask)
  }
 
  func nextUp(significantDigits digits: Int) -> Size {
   Self._checkSignificantDigits(digits)
 
-  let shift = rawValue._minimumBitWidth - digits
-  let mask: RawValue = (0 &- 1) << shift
+  let shift = _value._minimumBitWidth - digits
+  let mask: UInt = (0 &- 1) << shift
   guard shift >= 0 else {
-   return Size(rawValue + 1)
+   return Size(_value + 1)
   }
-  return Size((rawValue + (1 << shift)) & mask)
+  return Size((_value + (1 << shift)) & mask)
  }
 
  static func sizes(
@@ -166,13 +295,13 @@ public extension Size {
 
 extension Size: Sequence {
  public func makeIterator() -> Iterator {
-  Iterator(limit: rawValue)
+  Iterator(limit: _value)
  }
 
  public struct Iterator: IteratorProtocol {
-  var current: RawValue = 0
-  let limit: RawValue
-  public mutating func next() -> RawValue? {
+  var current: UInt = 0
+  let limit: UInt
+  public mutating func next() -> UInt? {
    guard current < limit else {
     return nil
    }

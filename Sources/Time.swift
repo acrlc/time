@@ -1,17 +1,19 @@
-// https://www.github.com/swift-collections-benchmark
 import Foundation
 
-/// A replacement for duration
+/// A unit of time based in ``Double`` and used to .
 public struct Time: Sendable {
- public let seconds: TimeInterval
+ let seconds: TimeInterval
 
  public init(_ seconds: TimeInterval) {
-  precondition(!seconds.isNaN)
+  precondition(
+   !seconds.isNaN, "\(Self.self) cannot be initialized as nan"
+  )
   self.seconds = seconds
  }
 }
 
 public extension Time {
+ static let zero = Time(0)
  static let second = Time(1)
  static let millisecond = Time(1e-3)
  static let microsecond = Time(1e-6)
@@ -19,7 +21,6 @@ public extension Time {
  static let picosecond = Time(1e-12)
  static let femtosecond = Time(1e-15)
  static let attosecond = Time(1e-18)
- static let zero = Time(0)
 }
 
 public extension Time {
@@ -32,7 +33,219 @@ extension Time: RawRepresentable {
  public var rawValue: TimeInterval { seconds }
 
  public init(rawValue: TimeInterval) {
-  seconds = rawValue
+  self.init(rawValue)
+ }
+}
+
+extension Time: FloatingPoint, ExpressibleByFloatLiteral {
+ public init(signOf lhs: Time, magnitudeOf rhs: Time) {
+  self.init(TimeInterval(signOf: lhs.seconds, magnitudeOf: rhs.seconds))
+ }
+
+ public init(_ value: some BinaryInteger) {
+  self.init(TimeInterval(value))
+ }
+
+ public init?(exactly value: some BinaryInteger) {
+  self.init(TimeInterval(value))
+ }
+
+ public init(integerLiteral value: Int) {
+  self.init(value)
+ }
+
+ public init(floatLiteral value: TimeInterval) {
+  self.init(value)
+ }
+
+ public static var radix: Int {
+  TimeInterval.radix
+ }
+
+ public static var nan: Time {
+  Time(.nan)
+ }
+
+ public static var signalingNaN: Time {
+  Time(.signalingNaN)
+ }
+
+ public static var infinity: Time {
+  Time(TimeInterval.infinity)
+ }
+
+ public static var greatestFiniteMagnitude: Time {
+  Time(TimeInterval.greatestFiniteMagnitude)
+ }
+
+ public static var pi: Time {
+  Time(TimeInterval.pi)
+ }
+
+ public var ulp: Time {
+  Time(seconds.ulp)
+ }
+
+ public static var leastNormalMagnitude: Time {
+  Time(TimeInterval.leastNormalMagnitude)
+ }
+
+ public static var leastNonzeroMagnitude: Time {
+  Time(TimeInterval.leastNonzeroMagnitude)
+ }
+
+ public var sign: FloatingPointSign {
+  seconds.sign
+ }
+
+ public var exponent: Int {
+  seconds.exponent
+ }
+
+ public var significand: Time {
+  Time(seconds.significand)
+ }
+
+ public mutating func formRemainder(dividingBy other: Time) {
+  var value = seconds
+  value.formRemainder(dividingBy: other.seconds)
+ }
+
+ public mutating func formTruncatingRemainder(dividingBy other: Time) {
+  var value = seconds
+  value.formTruncatingRemainder(dividingBy: other.seconds)
+  self = Time(value)
+ }
+
+ public mutating func formSquareRoot() {
+  var value = seconds
+  value.formSquareRoot()
+  self = Time(value)
+ }
+
+ public mutating func addProduct(_ lhs: Time, _ rhs: Time) {
+  var value = seconds
+  value.addProduct(lhs.seconds, rhs.seconds)
+  self = Time(value)
+ }
+
+ public mutating func round(_ rule: FloatingPointRoundingRule) {
+  var value = seconds
+  value.round(rule)
+  self = Time(value)
+ }
+
+ public var nextUp: Time {
+  Time(seconds.nextUp)
+ }
+
+ public var nextDown: Time {
+  Time(seconds.nextDown)
+ }
+
+ public func isEqual(to other: Time) -> Bool {
+  seconds.isEqual(to: other.seconds)
+ }
+
+ public func isLess(than other: Time) -> Bool {
+  seconds.isLess(than: other.seconds)
+ }
+
+ public func isLessThanOrEqualTo(_ other: Time) -> Bool {
+  seconds.isLessThanOrEqualTo(other.seconds)
+ }
+
+ public func isTotallyOrdered(belowOrEqualTo other: Time) -> Bool {
+  seconds.isTotallyOrdered(belowOrEqualTo: other.seconds)
+ }
+
+ public var isNormal: Bool {
+  seconds.isNormal
+ }
+
+ public var isFinite: Bool {
+  seconds.isFinite
+ }
+
+ public var isZero: Bool {
+  seconds.isZero
+ }
+
+ public var isSubnormal: Bool {
+  seconds.isSubnormal
+ }
+
+ public var isInfinite: Bool {
+  seconds.isInfinite
+ }
+
+ public var isNaN: Bool {
+  false
+ }
+
+ public var isSignalingNaN: Bool {
+  false
+ }
+
+ public var isCanonical: Bool {
+  seconds.isCanonical
+ }
+
+ public init(sign: FloatingPointSign, exponent: Int, significand: Time) {
+  self.init(
+   TimeInterval(
+    sign: sign, exponent: exponent,
+    significand: significand.seconds.significand
+   )
+  )
+ }
+
+ public func distance(to other: Time) -> TimeInterval {
+  seconds.distance(to: other.seconds)
+ }
+
+ public func advanced(by n: TimeInterval) -> Time {
+  Time(seconds.distance(to: n))
+ }
+
+ public var magnitude: Time {
+  Time(seconds.magnitude)
+ }
+
+ public static func * (lhs: Time, rhs: Time) -> Time {
+  Time(lhs.seconds * rhs.seconds)
+ }
+
+ public static func + (lhs: Time, rhs: Time) -> Time {
+  Time(lhs.seconds + rhs.seconds)
+ }
+
+ public static func - (lhs: Time, rhs: Time) -> Time {
+  Time(lhs.seconds - rhs.seconds)
+ }
+
+ public static func / (lhs: Time, rhs: Time) -> Time {
+  Time(lhs.seconds / rhs.seconds)
+ }
+
+ public static func * (lhs: Time, rhs: Int) -> Time {
+  Time(lhs.seconds * TimeInterval(rhs))
+ }
+
+ public static func / (lhs: Time, rhs: Int) -> Time {
+  Time(lhs.seconds / TimeInterval(rhs))
+ }
+
+ public static func / (lhs: Time, rhs: Time) -> TimeInterval {
+  lhs.seconds / rhs.seconds
+ }
+
+ public static func *= (lhs: inout Time, rhs: Time) {
+  lhs = lhs * rhs
+ }
+
+ public static func /= (lhs: inout Time, rhs: Time) {
+  lhs = lhs / rhs
  }
 }
 
@@ -147,7 +360,7 @@ extension Time {
     .rangeOfCharacter(from: Time._floatingPointCharacterSet.inverted) {
    let number = description.prefix(upTo: i.lowerBound)
    let suffix = description.suffix(from: i.lowerBound)
-   guard let value = Double(number) else {
+   guard let value = TimeInterval(number) else {
     return nil
    }
    guard let scale = Time._scaleFromSuffix[String(suffix)] else {
@@ -156,7 +369,7 @@ extension Time {
    self = Time(value * scale.seconds)
   }
   else {
-   guard let value = Double(description) else {
+   guard let value = TimeInterval(description) else {
     return nil
    }
    self = Time(value)
@@ -166,7 +379,7 @@ extension Time {
 
 public extension Time {
  func amortized(over size: Size) -> Time {
-  Time(seconds / TimeInterval(size.rawValue))
+  Time(seconds / TimeInterval(size._value))
  }
 }
 
