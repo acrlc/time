@@ -86,11 +86,11 @@ public extension Clock where Self == TimeClock {
  }
 }
 
-@available(macOS 13.0, *)
+@available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
 extension Time: DurationProtocol {
  @inline(__always)
  public var duration: Duration { .seconds(rawValue) }
 }
 
-@available(macOS 13.0, *)
+@available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
 extension Tick: InstantProtocol {}
