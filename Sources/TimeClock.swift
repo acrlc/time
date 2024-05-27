@@ -11,6 +11,9 @@ public struct DateClock: Clock {
  public init(minimumResolution: TimeInterval) {
   self.minimumResolution = minimumResolution
  }
+ public static func minimumResolution(_ interval: TimeInterval) -> Self {
+  Self(minimumResolution: interval)
+ }
 }
 
 @available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
@@ -64,6 +67,9 @@ public struct TimeClock: Clock {
  public init() {}
  public init(minimumResolution: Time) {
   self.minimumResolution = minimumResolution
+ }
+ public static func minimumResolution(_ interval: Time) -> Self {
+  Self(minimumResolution: interval)
  }
 }
 
