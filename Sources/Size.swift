@@ -21,12 +21,12 @@ extension Size: CustomStringConvertible {
    _value >= 1 << 40
     ? String(format: "%.3gT", v * 0x1p-40)
     : _value >= 1 << 30
-     ? String(format: "%.3gG", v * 0x1p-30)
-     : _value >= 1 << 20
-      ? String(format: "%.3gM", v * 0x1p-20)
-      : _value >= 1024
-       ? String(format: "%.3gk", v * 0x1p-10)
-       : "\(_value)"
+    ? String(format: "%.3gG", v * 0x1p-30)
+    : _value >= 1 << 20
+    ? String(format: "%.3gM", v * 0x1p-20)
+    : _value >= 1024
+    ? String(format: "%.3gk", v * 0x1p-10)
+    : "\(_value)"
  }
 }
 
@@ -58,8 +58,8 @@ extension Size: Codable {
  }
 }
 
-public extension Size {
- init?(_ string: String) {
+extension Size: LosslessStringConvertible {
+ public init?(_ string: String) {
   var position = string.startIndex
 
   // Parse digits
