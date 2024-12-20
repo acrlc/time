@@ -4,8 +4,7 @@ import struct Foundation.TimeInterval
 @available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
 /// A clock for events that rely on date
 public struct DateClock: Clock {
- @inline(__always)
- public var now: Date { .now }
+ public var now: Date = .now
  public var minimumResolution: TimeInterval = 1e-9
  public init() {}
  public init(minimumResolution: TimeInterval) {
@@ -61,8 +60,7 @@ extension Date: InstantProtocol {
 @available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
 /// A clock for events that rely on relative time
 public struct TimeClock: Clock {
- @inline(__always)
- public var now: Tick { .now }
+ public var now: Tick = .now
  public var minimumResolution: Time = Tick.resolution
  public init() {}
  public init(minimumResolution: Time) {
